@@ -1,26 +1,23 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from app.models import Shop, Category, User, Product, ProductInfo, Parameter, ProductParameter,\
+from .models import Shop, Category, User, Product, ProductInfo, Parameter, ProductParameter,\
     Order, OrderItem, Contact
 
 
-# @admin.register(User)
-# class CustomUserAdmin(UserAdmin):
-#     """
-#     Панель управления пользователями
-#     """
-#     model = User
-#
-#     fieldsets = (
-#         (None, {'fields': ('email', 'password', 'type')}),
-#         ('Personal info', {'fields': ('first_name', 'last_name', 'company', 'position')}),
-#         ('Permissions', {
-#             'fields': ('is_active', 'is_staff', 'is_superuser', 'groups', 'user_permissions'),
-#         }),
-#         ('Important dates', {'fields': ('last_login', 'date_joined')}),
-#     )
-#     list_display = ('email', 'first_name', 'last_name', 'is_staff')
+@admin.register(User)
+class CustomUserAdmin(admin.ModelAdmin):
+    # model = User
+
+    fieldsets = (
+        (None, {'fields': ('email', 'password', 'type')}),
+        ('Personal info', {'fields': ('first_name', 'last_name',)}),
+        ('Permissions', {
+            'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions'),
+        }),
+        ('Important dates', {'fields': ('last_login', 'date_joined')}),
+    )
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'type',)
 
 
 @admin.register(Shop)
@@ -60,12 +57,12 @@ class OrderAdmin(admin.ModelAdmin):
 
 @admin.register(OrderItem)
 class OrderItemAdmin(admin.ModelAdmin):
-    list_display = ('quantity',)
+    list_display = ('order', 'get_shops', 'get_products', 'quantity',)
 
 
 @admin.register(Contact)
 class ContactAdmin(admin.ModelAdmin):
-    list_display = ('city', 'street', 'house', 'apartment', 'phone',)
+    list_display = ('user', 'city', 'street', 'house', 'apartment', 'phone',)
 
 
 # @admin.register(ConfirmEmailToken)
