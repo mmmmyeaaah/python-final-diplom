@@ -8,14 +8,14 @@ class ShopSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shop
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 
 
 class ProductSerializer(serializers.ModelSerializer):
@@ -24,7 +24,7 @@ class ProductSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 
 
 class ProductParameterSerializer(serializers.Serializer):
@@ -33,7 +33,7 @@ class ProductParameterSerializer(serializers.Serializer):
     class Meta:
         model = ProductParameter
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 
 
 class ProductInfoSerializer(serializers.ModelSerializer):
@@ -43,14 +43,14 @@ class ProductInfoSerializer(serializers.ModelSerializer):
     class Meta:
         model = ProductInfo
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 
 
 class ContactSerializer(serializers.ModelSerializer):
     class Meta:
         model = Contact
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
         # extra_kwargs = {
         #     'user': {'write_only': True}
         # }
@@ -62,14 +62,14 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 
 
 class OrderItemSerializer(serializers.ModelSerializer):
     class Meta:
         model = OrderItem
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
         # extra_kwargs = {
         #     'order': {'write_only': True}
         # }                                  #что это делает?
@@ -87,5 +87,5 @@ class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = '__all__'
-        read_only_fields = ['id']
+        read_only_fields = ('id',)
 

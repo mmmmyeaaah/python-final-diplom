@@ -1,23 +1,25 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Shop, Category, User, Product, ProductInfo, Parameter, ProductParameter,\
-    Order, OrderItem, Contact
+from .models import Shop, Category, User, Product, ProductInfo, Parameter, ProductParameter, \
+    Order, OrderItem, Contact, ConfirmEmailToken
 
 
 @admin.register(User)
+# class CustomUserAdmin(UserAdmin):
 class CustomUserAdmin(admin.ModelAdmin):
-    # model = User
+    model = User
 
     fieldsets = (
         (None, {'fields': ('email', 'password', 'type')}),
         ('Personal info', {'fields': ('first_name', 'last_name',)}),
         ('Permissions', {
-            'fields': ('is_staff', 'is_superuser', 'groups', 'user_permissions'),
+            'fields': ('is_staff', 'is_superuser', 'is_active', 'user_permissions'),
         }),
         ('Important dates', {'fields': ('last_login', 'date_joined')}),
     )
-    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'type',)
+    list_display = ('email', 'first_name', 'last_name', 'is_staff', 'is_superuser', 'type', 'is_active')
+    ordering = ('date_joined',)
 
 
 @admin.register(Shop)
@@ -65,6 +67,6 @@ class ContactAdmin(admin.ModelAdmin):
     list_display = ('user', 'city', 'street', 'house', 'apartment', 'phone',)
 
 
-# @admin.register(ConfirmEmailToken)
-# class ConfirmEmailTokenAdmin(admin.ModelAdmin):
-#     list_display = ('user', 'key', 'created_at',)
+@admin.register(ConfirmEmailToken)
+class ConfirmEmailTokenAdmin(admin.ModelAdmin):
+    list_display = ('user', 'key', 'created_at',)

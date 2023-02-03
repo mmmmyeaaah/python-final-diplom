@@ -2,6 +2,9 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import MinValueValidator
 from django.db import models
+from django_rest_passwordreset.tokens import get_token_generator
+
+from orders import settings
 
 
 class UserManager(BaseUserManager):
@@ -40,11 +43,19 @@ class User(AbstractUser):
     )
     username = None
     email = models.EmailField(unique=True)
-    # email = models.EmailField(_('email address'), unique=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
     objects = UserManager()
-    type = models.CharField(verbose_name='Тип пользователя', choices=USER_TYPE_CHOICES, max_length=5, default='buyer')
+    type = models.CharField(
+        verbose_name='Тип пользователя',
+        choices=USER_TYPE_CHOICES,
+        max_length=5,
+        default='buyer'
+    )
+    is_active = models.BooleanField(
+        verbose_name='Пользователь активен',
+        default=False
+    )
 
     def __str__(self):
         return f'{self.first_name} {self.last_name}'
@@ -52,13 +63,18 @@ class User(AbstractUser):
     class Meta:
         verbose_name = 'Пользователь'
         verbose_name_plural = "Список пользователей"
-        ordering = ('email',)
-        # ordering = ['date_joined']
 
 
 class Shop(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Название магазина')
-    url = models.URLField(verbose_name='Ссылка', null=True, blank=True)
+    name = models.CharField(
+        max_length=50,
+        verbose_name='Название магазина'
+    )
+    url = models.URLField(
+        verbose_name='Ссылка',
+        null=True,
+        blank=True
+    )
     filename = models.CharField(max_length=50, blank=True) # что это????????
 
     class Meta:
@@ -71,10 +87,14 @@ class Shop(models.Model):
 
 
 class Category(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Название категории')
+    name = models.CharField(
+        max_length=50,
+        verbose_name='Название категории'
+    )
     shops = models.ManyToManyField(
         Shop, verbose_name='Магазины',
-        related_name='categories', blank=True
+        related_name='categories',
+        blank=True
     )
 
     def get_shops(self):
@@ -93,7 +113,10 @@ class Category(models.Model):
 
 
 class Product(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Название продукта')
+    name = models.CharField(
+        max_length=50,
+        verbose_name='Название продукта'
+    )
     category = models.ForeignKey(
         Category, verbose_name='Категории',
         related_name='products', blank=True,
@@ -110,7 +133,10 @@ class Product(models.Model):
 
 
 class ProductInfo(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Товар')
+    name = models.CharField(
+        max_length=50,
+        verbose_name='Товар'
+    )
     quantity = models.PositiveIntegerField(verbose_name='Количество')
     price = models.DecimalField(
         max_digits=9,
@@ -148,7 +174,10 @@ class ProductInfo(models.Model):
 
 
 class Parameter(models.Model):
-    name = models.CharField(max_length=50, verbose_name='Название')
+    name = models.CharField(
+        max_length=50,
+        verbose_name='Название'
+    )
 
     class Meta:
         verbose_name = 'Имя параметра'
@@ -174,7 +203,10 @@ class ProductParameter(models.Model):
         blank=True,
         on_delete=models.CASCADE
     )
-    value = models.CharField(verbose_name='Значение', max_length=50)
+    value = models.CharField(
+        verbose_name='Значение',
+        max_length=50
+    )
 
     class Meta:
         verbose_name = 'Параметр'
@@ -194,12 +226,17 @@ class Order(models.Model):
         ('canceled', 'Отменен'),
     )
     user = models.ForeignKey(
-        User, verbose_name='Пользователь',
+        settings.AUTH_USER_MODEL,
+        verbose_name='Пользователь',
         related_name='orders',
         on_delete=models.CASCADE
     )
     dt = models.DateTimeField(auto_now_add=True)
-    state = models.CharField(verbose_name='Статус заказа', choices=STATUS_CHOICES, max_length=15)
+    state = models.CharField(
+        verbose_name='Статус заказа',
+        choices=STATUS_CHOICES,
+        max_length=15
+    )
 
     class Meta:
         verbose_name = 'Заказ'
@@ -212,19 +249,25 @@ class Order(models.Model):
 
 class OrderItem(models.Model):
     order = models.ForeignKey(
-        Order, verbose_name='Заказ',
+        Order,
+        verbose_name='Заказ',
         related_name='order_items',
         on_delete=models.CASCADE
     )
     product = models.ManyToManyField(
-        Product, verbose_name='Продукты',
+        Product,
+        verbose_name='Продукты',
         related_name='order_items',
     )
     shop = models.ManyToManyField(
-        Shop, verbose_name='Магазин',
+        Shop,
+        verbose_name='Магазин',
         related_name='order_items',
     )
-    quantity = models.PositiveIntegerField(verbose_name='Количество', default=1)
+    quantity = models.PositiveIntegerField(
+        verbose_name='Количество',
+        default=1
+    )
 
     def get_shops(self):
         shop_list = [shop.name for shop in self.shop.all()]
@@ -251,7 +294,8 @@ class OrderItem(models.Model):
 
 class Contact(models.Model):
     user = models.ForeignKey(
-        User, verbose_name='Контакт',
+        settings.AUTH_USER_MODEL,
+        verbose_name='Контакт',
         related_name='contact',
         on_delete=models.CASCADE
     )
@@ -269,3 +313,41 @@ class Contact(models.Model):
         
     def __str__(self):
         return f'{self.city} {self.street} {self.house} {self.apartment}'
+
+
+class ConfirmEmailToken(models.Model):
+    class Meta:
+        verbose_name = 'Токен подтверждения Email'
+        verbose_name_plural = 'Токены подтверждения Email'
+
+    @staticmethod
+    def generate_key():
+        """ generates a pseudo random code using os.urandom and binascii.hexlify """
+        return get_token_generator().generate_token()
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        related_name='confirm_email_tokens',
+        on_delete=models.CASCADE,
+        verbose_name='Юзер, которому пренадлежит токен'
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name='Дата генерации токена'
+    )
+
+    # Key field, though it is not the primary key of the model
+    key = models.CharField(
+        max_length=64,
+        db_index=True,
+        unique=True
+    )
+
+    def save(self, *args, **kwargs):
+        if not self.key:
+            self.key = self.generate_key()
+        return super(ConfirmEmailToken, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return "Password reset token for user {user}".format(user=self.user)
