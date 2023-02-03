@@ -1,6 +1,8 @@
-Django
+django
 pytz
 python-dotenv
 psycopg2-binary
 djangorestframework
 django-rest-passwordreset
+requests
+PyYAML
