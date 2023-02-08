@@ -135,7 +135,7 @@ class Product(models.Model):
 class ProductInfo(models.Model):
     name = models.CharField(
         max_length=50,
-        verbose_name='Товар'
+        verbose_name='Модель'
     )
     quantity = models.PositiveIntegerField(verbose_name='Количество')
     price = models.DecimalField(
@@ -295,7 +295,7 @@ class OrderItem(models.Model):
 class Contact(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        verbose_name='Контакт',
+        verbose_name='Пользователь',
         related_name='contact',
         on_delete=models.CASCADE
     )
@@ -337,7 +337,6 @@ class ConfirmEmailToken(models.Model):
         verbose_name='Дата генерации токена'
     )
 
-    # Key field, though it is not the primary key of the model
     key = models.CharField(
         max_length=64,
         db_index=True,

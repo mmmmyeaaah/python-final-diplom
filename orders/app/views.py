@@ -1,6 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import URLValidator
+from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import render
 # from rest_framework.exceptions import ValidationError
@@ -12,8 +13,8 @@ from rest_framework.authtoken.models import Token
 from requests import get
 from yaml import load as load_yaml, Loader
 
-from .models import Category, Shop, ConfirmEmailToken, ProductInfo, Product, Parameter, ProductParameter
-from .serializers import CategorySerializer, ShopSerializer, UserSerializer
+from .models import Category, Shop, ConfirmEmailToken, ProductInfo, Product, Parameter, ProductParameter, Contact
+from .serializers import CategorySerializer, ShopSerializer, UserSerializer, ContactSerializer
 
 
 class RegisterAccount(APIView):
@@ -176,8 +177,7 @@ class PartnerUpdate(APIView):
                     product, _ = Product.objects.get_or_create(name=item['name'], category_id=item['category'])
 
                     product_info = ProductInfo.objects.create(product_id=product.id,
-                                                              # external_id=item['id'],
-                                                              # model=item['model'],
+                                                              name=item['model'],
                                                               price=item['price'],
                                                               price_rrc=item['price_rrc'],
                                                               quantity=item['quantity'],
@@ -191,5 +191,114 @@ class PartnerUpdate(APIView):
                 return JsonResponse({'Status': True})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+
+class ProductInfoView(APIView):
+    """
+    Класс для поиска товаров
+    """
+    ...
+
+
+class BasketView(APIView):
+    """
+    Класс для работы с корзиной пользователя
+    """
+    ...
+
+
+class PartnerState(APIView):
+    """
+    Класс для работы со статусом поставщика
+    """
+    ...
+
+
+class PartnerOrders(APIView):
+    """
+    Класс для получения заказов поставщиками
+    """
+    ...
+
+
+class ContactView(APIView):
+    """
+    Класс для работы с контактами покупателей
+    """
+    # получение контактов
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+        contact = Contact.objects.filter(
+            user_id=request.user.id)
+        serializer = ContactSerializer(contact, many=True)
+        return Response(serializer.data)
+
+    # добавление контакта
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        if {'city', 'street', 'phone', 'apartment', 'house'}.issubset(request.data):
+            # request.data._mutable = True
+            request.data.update({'user': request.user.id})
+            serializer = ContactSerializer(data=request.data)
+
+            if serializer.is_valid():
+                serializer.save()
+                return JsonResponse({'Status': True})
+            else:
+                JsonResponse({'Status': False, 'Errors': serializer.errors})
+
+        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+    # редактирование контакта
+    def put(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        if 'id' in request.data:
+            if request.data['id'].isdigit():
+                contact = Contact.objects.filter(id=request.data['id'], user_id=request.user.id).first()
+                if contact:
+                    serializer = ContactSerializer(contact, data=request.data, partial=True)
+                    if serializer.is_valid():
+                        serializer.save()
+                        return JsonResponse({'Status': True})
+                    else:
+                        JsonResponse({'Status': False, 'Errors': serializer.errors})
+
+        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+    # удаление контакта
+    def delete(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        items_sting = request.data.get('items')
+        print(items_sting)
+        if items_sting:
+            items_list = items_sting.split(',')
+            query = Q()
+            objects_deleted = False
+            for contact_id in items_list:
+                if contact_id.isdigit():
+                    query = query | Q(user_id=request.user.id, id=contact_id)
+                    objects_deleted = True
+
+            if objects_deleted:
+                deleted_count = Contact.objects.filter(query).delete()[0]
+                return JsonResponse({'Status': True, 'Удалено объектов': deleted_count})
+        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+
+class OrderView(APIView):
+    """
+    Класс для получения и размешения заказов пользователями
+    """
+    ...
+
+
+
 
 

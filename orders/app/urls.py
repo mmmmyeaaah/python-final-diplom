@@ -1,6 +1,7 @@
 from django.urls import path
 
-from .views import ShopView, CategoryView, RegisterAccount, ConfirmAccount, LoginAccount, AccountDetails, PartnerUpdate
+from .views import ShopView, CategoryView, RegisterAccount, ConfirmAccount, LoginAccount, AccountDetails, PartnerUpdate, \
+    ContactView
 
 app_name = 'app'
 
@@ -12,4 +13,5 @@ urlpatterns = [
     path('user/login', LoginAccount.as_view(), name='user-login'),
     path('user/details', AccountDetails.as_view(), name='user-details'),
     path('partner/update', PartnerUpdate.as_view(), name='partner-update'),
+    path('user/contact', ContactView.as_view(), name='user-contact'),
 ]
