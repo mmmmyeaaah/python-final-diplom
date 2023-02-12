@@ -29,6 +29,7 @@ class ProductSerializer(serializers.ModelSerializer):
 
 class ProductParameterSerializer(serializers.Serializer):
     parameter = serializers.StringRelatedField()
+    value = serializers.StringRelatedField()
 
     class Meta:
         model = ProductParameter

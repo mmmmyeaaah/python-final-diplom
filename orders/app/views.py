@@ -14,7 +14,7 @@ from requests import get
 from yaml import load as load_yaml, Loader
 
 from .models import Category, Shop, ConfirmEmailToken, ProductInfo, Product, Parameter, ProductParameter, Contact
-from .serializers import CategorySerializer, ShopSerializer, UserSerializer, ContactSerializer
+from .serializers import CategorySerializer, ShopSerializer, UserSerializer, ContactSerializer, ProductInfoSerializer
 
 
 class RegisterAccount(APIView):
@@ -193,13 +193,6 @@ class PartnerUpdate(APIView):
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
 
-class ProductInfoView(APIView):
-    """
-    Класс для поиска товаров
-    """
-    ...
-
-
 class BasketView(APIView):
     """
     Класс для работы с корзиной пользователя
@@ -276,7 +269,6 @@ class ContactView(APIView):
             return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
 
         items_sting = request.data.get('items')
-        print(items_sting)
         if items_sting:
             items_list = items_sting.split(',')
             query = Q()
@@ -292,9 +284,36 @@ class ContactView(APIView):
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
 
+class ProductInfoView(APIView):
+    """
+    Класс для поиска товаров
+    """
+    def get(self, request, *args, **kwargs):
+
+        query = Q()
+        shop_id = request.query_params.get('shop_id')
+        category_id = request.query_params.get('category_id')
+
+        if shop_id:
+            query = query & Q(shop_id=shop_id)
+
+        if category_id:
+            query = query & Q(product__category_id=category_id)
+
+        # фильтруем и отбрасываем дубликаты
+        queryset = ProductInfo.objects.filter(
+            query).select_related(
+            'shop', 'product__category').prefetch_related(
+            'product_parameters__parameter').distinct()
+
+        serializer = ProductInfoSerializer(queryset, many=True)
+
+        return Response(serializer.data)
+
+
 class OrderView(APIView):
     """
-    Класс для получения и размешения заказов пользователями
+    Класс для получения и размещения заказов пользователями
     """
     ...
 
