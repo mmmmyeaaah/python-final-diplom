@@ -1,3 +1,5 @@
+from distutils.util import strtobool
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from django.core.validators import URLValidator
@@ -193,27 +195,6 @@ class PartnerUpdate(APIView):
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
 
 
-class BasketView(APIView):
-    """
-    Класс для работы с корзиной пользователя
-    """
-    ...
-
-
-class PartnerState(APIView):
-    """
-    Класс для работы со статусом поставщика
-    """
-    ...
-
-
-class PartnerOrders(APIView):
-    """
-    Класс для получения заказов поставщиками
-    """
-    ...
-
-
 class ContactView(APIView):
     """
     Класс для работы с контактами покупателей
@@ -311,11 +292,60 @@ class ProductInfoView(APIView):
         return Response(serializer.data)
 
 
+class PartnerState(APIView):
+    """
+    Класс для работы со статусом поставщика
+    """
+    # получить текущий статус
+    def get(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        if request.user.type != 'shop':
+            return JsonResponse({'Status': False, 'Error': 'Только для магазинов'}, status=403)
+
+        shop = request.user.shop
+        serializer = ShopSerializer(shop)
+        return Response(serializer.data)
+
+    # # изменить текущий статус
+    def post(self, request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'Status': False, 'Error': 'Log in required'}, status=403)
+
+        if request.user.type != 'shop':
+            return JsonResponse({'Status': False, 'Error': 'Только для магазинов'}, status=403)
+        state = request.data.get('state')
+        if state:
+            try:
+                Shop.objects.filter(user_id=request.user.id).update(state=strtobool(state))
+                return JsonResponse({'Status': True})
+            except ValueError as error:
+                return JsonResponse({'Status': False, 'Errors': str(error)})
+
+        return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
+
+
+class PartnerOrders(APIView):
+    """
+    Класс для получения заказов поставщиками
+    """
+    ...
+
+
 class OrderView(APIView):
     """
     Класс для получения и размещения заказов пользователями
     """
     ...
+
+
+class BasketView(APIView):
+    """
+    Класс для работы с корзиной пользователя
+    """
+    ...
+
 
 
 

@@ -76,6 +76,14 @@ class Shop(models.Model):
         blank=True
     )
     filename = models.CharField(max_length=50, blank=True) # что это????????
+    user = models.OneToOneField(
+        User,
+        verbose_name='Пользователь',
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE
+    )
+    state = models.BooleanField(verbose_name='статус получения заказов', default=True)
 
     class Meta:
         verbose_name = 'Магазин'
