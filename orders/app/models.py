@@ -100,7 +100,8 @@ class Category(models.Model):
         verbose_name='Название категории'
     )
     shops = models.ManyToManyField(
-        Shop, verbose_name='Магазины',
+        Shop,
+        verbose_name='Магазины',
         related_name='categories',
         blank=True
     )
@@ -173,9 +174,9 @@ class ProductInfo(models.Model):
         verbose_name = 'Информация о продукте'
         verbose_name_plural = 'Информация о продуктах, остатки'
         ordering = ['-name']
-        # constraints = [
-        #     models.UniqueConstraint(fields=['product', 'shop'], name='unique_product_info'),
-        # ]
+        constraints = [
+            models.UniqueConstraint(fields=['product', 'shop'], name='unique_product_info'),
+        ]
 
     def __str__(self):
         return self.name
@@ -219,9 +220,30 @@ class ProductParameter(models.Model):
     class Meta:
         verbose_name = 'Параметр'
         verbose_name_plural = "Список параметров"
-        # constraints = [
-        #     models.UniqueConstraint(fields=['product_info', 'parameter'], name='unique_product_parameter'),
-        # ]
+        constraints = [
+            models.UniqueConstraint(fields=['product_info', 'parameter'], name='unique_product_parameter'),
+        ]
+
+
+class Contact(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        verbose_name='Пользователь',
+        related_name='contact',
+        on_delete=models.CASCADE
+    )
+    city = models.CharField(max_length=50, verbose_name='Город')
+    street = models.CharField(max_length=50, verbose_name='Улица')
+    house = models.CharField(max_length=50, verbose_name='Дом')
+    apartment = models.CharField(max_length=50, verbose_name='Квартира')
+    phone = models.CharField(max_length=20, verbose_name='Телефон')
+
+    class Meta:
+        verbose_name = 'Контакты пользователя'
+        verbose_name_plural = 'Контакты пользователей'
+
+    def __str__(self):
+        return f'{self.city} {self.street} {self.house} {self.apartment}'
 
 
 class Order(models.Model):
@@ -232,6 +254,7 @@ class Order(models.Model):
         ('sent', 'Отправлен'),
         ('delivered', 'Доставлен'),
         ('canceled', 'Отменен'),
+        ('basket', "Статус корзины")
     )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -243,7 +266,14 @@ class Order(models.Model):
     state = models.CharField(
         verbose_name='Статус заказа',
         choices=STATUS_CHOICES,
-        max_length=15
+        max_length=15,
+        default='new'
+    )
+    contact = models.ForeignKey(
+        Contact,
+        verbose_name='Контакт',
+        blank=True, null=True,
+        on_delete=models.CASCADE
     )
 
     class Meta:
@@ -260,31 +290,22 @@ class OrderItem(models.Model):
         Order,
         verbose_name='Заказ',
         related_name='order_items',
-        on_delete=models.CASCADE
+        on_delete=models.CASCADE,
     )
-    product = models.ManyToManyField(
+    product_info = models.ForeignKey(
         Product,
         verbose_name='Продукты',
         related_name='order_items',
-    )
-    shop = models.ManyToManyField(
-        Shop,
-        verbose_name='Магазин',
-        related_name='order_items',
+        on_delete=models.CASCADE,
+        blank=True, null=True
     )
     quantity = models.PositiveIntegerField(
         verbose_name='Количество',
         default=1
     )
 
-    def get_shops(self):
-        shop_list = [shop.name for shop in self.shop.all()]
-        return ', '.join(shop_list)
-
-    get_shops.short_description = 'Магазины'
-
     def get_products(self):
-        product_list = [product.name for product in self.product.all()]
+        product_list = [product.name for product in self.product_info.all()]
         return ', '.join(product_list)
 
     get_products.short_description = 'Продукты'
@@ -292,35 +313,12 @@ class OrderItem(models.Model):
     class Meta:
         verbose_name = 'Заказанный товар'
         verbose_name_plural = 'Список заказанных товаров'
-        # constraints = [
-        #     models.UniqueConstraint(fields=['order_id',], name='unique_order_item'),
-        # ]
+        constraints = [
+            models.UniqueConstraint(fields=['order_id', 'product_info'], name='unique_order_item'),
+        ]
 
     def __str__(self):
         return self.order
-
-
-class Contact(models.Model):
-    user = models.ForeignKey(
-        settings.AUTH_USER_MODEL,
-        verbose_name='Пользователь',
-        related_name='contact',
-        on_delete=models.CASCADE
-    )
-    # value = ...
-    # type = ...
-    city = models.CharField(max_length=50, verbose_name='Город')
-    street = models.CharField(max_length=50, verbose_name='Улица')
-    house = models.CharField(max_length=50, verbose_name='Дом')
-    apartment = models.CharField(max_length=50, verbose_name='Квартира')
-    phone = models.CharField(max_length=20, verbose_name='Телефон')
-
-    class Meta:
-        verbose_name = 'Контакты пользователя'
-        verbose_name_plural = 'Контакты пользователей'
-        
-    def __str__(self):
-        return f'{self.city} {self.street} {self.house} {self.apartment}'
 
 
 class ConfirmEmailToken(models.Model):
