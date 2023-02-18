@@ -1,4 +1,4 @@
-"""orders URL Configuration
+"""my_diplom URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/4.1/topics/http/urls/
@@ -18,5 +18,7 @@ from django.urls import path, include
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', include('app.urls', namespace='app'))
+    path('api/v1/', include('orders.urls', namespace='orders')),
+    path('api/v1/', include('users.urls', namespace='users')),
+    path('api/v1/', include('shops.urls', namespace='shops'))
 ]
