@@ -127,8 +127,10 @@ class Product(models.Model):
         verbose_name='Название продукта'
     )
     category = models.ForeignKey(
-        Category, verbose_name='Категории',
-        related_name='products', blank=True,
+        Category,
+        verbose_name='Категории',
+        related_name='products',
+        blank=True,
         on_delete=models.CASCADE
     )
 
@@ -293,11 +295,10 @@ class OrderItem(models.Model):
         on_delete=models.CASCADE,
     )
     product_info = models.ForeignKey(
-        Product,
+        ProductInfo,
         verbose_name='Продукты',
         related_name='order_items',
         on_delete=models.CASCADE,
-        blank=True, null=True
     )
     quantity = models.PositiveIntegerField(
         verbose_name='Количество',
