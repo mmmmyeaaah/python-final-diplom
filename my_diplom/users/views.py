@@ -1,3 +1,5 @@
+from smtplib import SMTPRecipientsRefused
+
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.authtoken.models import Token
@@ -8,6 +10,7 @@ from django.db.models import Q
 
 from users.models import ConfirmEmailToken, Contact
 from users.serializers import UserSerializer, ContactSerializer
+from .signals import new_user_registered
 
 
 class RegisterAccount(APIView):
@@ -29,8 +32,12 @@ class RegisterAccount(APIView):
                     user = user_serializer.save()
                     user.set_password(request.data['password'])
                     user.save()
-                    token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user.id)
-                    return JsonResponse({'Status': True, 'token': token.key})
+                    try:
+                        new_user_registered.send(sender=self.__class__, user_id=user.id)
+                    except SMTPRecipientsRefused:
+                        return JsonResponse({'Error': 'failed email'})
+
+                    return JsonResponse({'Status': True}) #'token': token.key})
                 else:
                     return JsonResponse({'Status': False, 'Errors': user_serializer.errors})
 

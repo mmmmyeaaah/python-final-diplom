@@ -8,6 +8,7 @@ from ujson import loads as load_json
 
 from orders.models import Order, OrderItem
 from orders.serializers import OrderSerializer, OrderItemSerializer
+from .signals import new_order
 
 
 class BasketView(APIView):
@@ -136,6 +137,7 @@ class OrderView(APIView):
                     return JsonResponse({'Status': False, 'Errors': 'Неправильно указаны аргументы'})
                 else:
                     if is_updated:
+                        new_order.send(sender=self.__class__, user_id=request.user.id)
                         return JsonResponse({'Status': True})
 
         return JsonResponse({'Status': False, 'Errors': 'Не указаны все необходимые аргументы'})
