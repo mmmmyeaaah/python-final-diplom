@@ -1,10 +1,10 @@
 from django.core.exceptions import ValidationError
-from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from django.db.models import Q
 from rest_framework.response import Response
 from django.http import JsonResponse
 from django.core.validators import URLValidator
+from rest_framework.viewsets import ReadOnlyModelViewSet
 
 from distutils.util import strtobool
 from requests import get
@@ -14,7 +14,7 @@ from shops.models import Category, Shop, ProductInfo, Product, Parameter, Produc
 from shops.serializers import CategorySerializer, ShopSerializer, ProductInfoSerializer
 
 
-class CategoryView(ListAPIView):
+class CategoryView(ReadOnlyModelViewSet):
     """
     Класс для просмотра категорий
     """
@@ -22,7 +22,7 @@ class CategoryView(ListAPIView):
     serializer_class = CategorySerializer
 
 
-class ShopView(ListAPIView):
+class ShopView(ReadOnlyModelViewSet):
     """
     Класс для просмотра списка магазинов
     """
