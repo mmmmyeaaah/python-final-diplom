@@ -172,8 +172,7 @@ REST_FRAMEWORK = {
 
 AUTH_USER_MODEL = 'users.User'
 
-#OAuth
-
+# OAuth
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
     'allauth.account.auth_backends.AuthenticationBackend',
@@ -190,8 +189,7 @@ SOCIALACCOUNT_PROVIDERS = {
     }
 }
 
-#Email
-
+# Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = os.getenv('EMAIL_HOST')
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
@@ -206,3 +204,10 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Celery configuration
+CELERY_BROKER_URL = 'redis://0.0.0.0:6379/0'
+CELERY_RESULT_BACKEND = 'redis://0.0.0.0:6379/0'
+CELERY_ACCEPT_CONTENT = ['application/json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'

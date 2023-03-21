@@ -1,5 +1,3 @@
-from smtplib import SMTPRecipientsRefused
-
 from django.contrib.auth import authenticate
 from django.contrib.auth.password_validation import validate_password
 from rest_framework.authtoken.models import Token
@@ -10,7 +8,7 @@ from django.db.models import Q
 
 from users.models import ConfirmEmailToken, Contact
 from users.serializers import UserSerializer, ContactSerializer
-from .signals import new_user_registered
+from my_diplom.celery import send_email
 
 
 class RegisterAccount(APIView):
@@ -32,12 +30,15 @@ class RegisterAccount(APIView):
                     user = user_serializer.save()
                     user.set_password(request.data['password'])
                     user.save()
-                    try:
-                        new_user_registered.send(sender=self.__class__, user_id=user.id)
-                    except SMTPRecipientsRefused:
-                        return JsonResponse({'Error': 'failed email'})
 
-                    return JsonResponse({'Status': True}) #'token': token.key})
+                    # Отправка письма с подтверждением почты.
+                    token, _ = ConfirmEmailToken.objects.get_or_create(user_id=user.id)
+                    title = f'Подтверждение регистрации пользователя: {token.user.email}'
+                    message = f'Токен: {token.key}'
+                    email = token.user.email
+                    send_email.delay(title, message, email)
+
+                    return JsonResponse({'Status': True})
                 else:
                     return JsonResponse({'Status': False, 'Errors': user_serializer.errors})
 

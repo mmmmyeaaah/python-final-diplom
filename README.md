@@ -167,3 +167,50 @@
 1. Создать docker-файл для сборки приложения.
 2. Предоставить инструкцию для сборки docker-образа.
 3. Создать docker-compose файл для развертывания приложения локально (с БД и необходимыми сервисами)
+
+### Установка приложения
+
+Склонируйте репозиторий с помощью git:
+
+    git clone https://github.com/mmmmyeaaah/python-final-diplom
+
+Создать и активировать виртуальное окружение Python.
+
+Установить зависимости из файла requirements.txt:
+
+    pip install -r requiremens.txt
+
+Создать и заполнить .env файл в директории python-final-diplom
+
+      SECRET_KEY=\
+      DEBUG=True\
+      DB_NAME=\
+      DB_HOST=\
+      DB_PORT=\
+      USER_NAME=\
+      USER_PASSWORD=\
+      EMAIL_HOST_PASSWORD=\
+      EMAIL_HOST_USER=\
+      EMAIL_PORT=\
+      EMAIL_HOST=
+
+Выполнить следующие команды:
+
+- Команда для создания миграций приложения для базы данных
+
+      python manage.py makemigrations
+      python manage.py migrate
+
+- Команда для запуска redis:
+
+      docker-compose up
+
+- Команда для запуска celery:
+
+      celery -A my_diplom worker -l INFO 
+
+- Команда для запуска сервера:
+
+       python manage.py runserver
+
+Приложение будет доступно по адресу: http://127.0.0.1:8000/
