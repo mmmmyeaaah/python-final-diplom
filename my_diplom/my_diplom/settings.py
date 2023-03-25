@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.github',
+    'allauth.socialaccount.providers.vk',
 
     'rest_framework',
     'rest_framework.authtoken',
@@ -180,12 +181,24 @@ AUTHENTICATION_BACKENDS = [
 
 SITE_ID = 1
 
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
+SOCIALACCOUNT_AUTO_SIGNUP = False
+
 # Provider specific settings
 SOCIALACCOUNT_PROVIDERS = {
     'github': {
         'SCOPE': [
             'user',
         ],
+    },
+    'vk': {
+        'APP': {
+            'client_id': 'your_client',
+            'secret': 'your_secret',
+            'key': 'your_key',
+        }                                                                                                                                                           
     }
 }
 
